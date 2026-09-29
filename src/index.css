@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root { color-scheme: dark; }
+
+html, body { min-height: 100vh; }
+
+body {
+  background: linear-gradient(160deg, #10121f 0%, #161a2e 45%, #1e1733 100%);
+  background-attachment: fixed;
+  color: #e8e9f1;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: rgba(139, 124, 246, 0.35); }
+
+.divider { border-color: rgba(255, 255, 255, 0.09); }
+
+input, textarea, select {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+input:focus, textarea:focus, select:focus { border-color: rgba(139, 124, 246, 0.65); }
+input::placeholder, textarea::placeholder { color: rgba(232, 233, 241, 0.32); }
+
+select option { background: #1a1e33; }

@@ -1,0 +1,235 @@
+import { useEffect, useMemo, useState } from 'react'
+import { aiProxy, supabase } from '../lib/supabase.js'
+
+const ISSUE_LABEL = {
+  misunderstand: '概念误解',
+  gap: '关键缺失',
+  wrong_link: '因果链错误',
+}
+
+function shuffle(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+export default function QuizFlow({ questionsIn, title, ordered = true, onDone }) {
+  const questions = useMemo(
+    () => (ordered ? questionsIn : shuffle(questionsIn)),
+    [questionsIn, ordered],
+  )
+  const [idx, setIdx] = useState(0)
+  const [choice, setChoice] = useState(null)
+  const [reasoning, setReasoning] = useState('')
+  const [grading, setGrading] = useState(false)
+  const [result, setResult] = useState(null) // aiProxy('grade') 的返回
+  const [saved, setSaved] = useState(false)
+  const [err, setErr] = useState('')
+  const [finished, setFinished] = useState(false)
+
+  const q = questions[idx]
+
+  // 换题时重置本轮状态
+  useEffect(() => {
+    if (!q) return
+    setSaved(!!q.collected)
+    setChoice(null)
+    setReasoning('')
+    setResult(null)
+    setErr('')
+  }, [q?.id])
+
+  if (finished) {
+    return (
+      <div className="pt-20 text-center">
+        <p className="text-2xl font-medium">这一轮凿完了</p>
+        <p className="mt-3 text-sm text-white/45">共 {questions.length} 题，理由都已存档。</p>
+        <button
+          onClick={onDone}
+          className="mt-8 px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors"
+        >
+          返回
+        </button>
+      </div>
+    )
+  }
+
+  if (!questions.length) {
+    return <p className="pt-14 text-sm text-white/30">这里没有可刷的题。</p>
+  }
+
+  const options = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+
+  async function submit() {
+    setErr('')
+    setGrading(true)
+    try {
+      const r = await aiProxy('grade', { question_id: q.id, choice, reasoning })
+      setResult(r)
+    } catch (e) {
+      setErr(e.message)
+    } finally {
+      setGrading(false)
+    }
+  }
+
+  async function toggleCollect() {
+    const next = !saved
+    setSaved(next)
+    const { error } = await supabase.from('questions').update({ collected: next }).eq('id', q.id)
+    if (error) setSaved(!next) // 失败回滚
+  }
+
+  function next() {
+    if (idx + 1 >= questions.length) {
+      setFinished(true)
+      return
+    }
+    setIdx(idx + 1)
+  }
+
+  return (
+    <div className="pt-14">
+      <div className="flex items-baseline justify-between">
+        <p className="text-xs text-white/35">{title}</p>
+        <p className="text-xs text-white/35">{idx + 1} / {questions.length}</p>
+      </div>
+      <div className="mt-2 h-px bg-white/10">
+        <div
+          className="h-px bg-violet-400/60 transition-all duration-500"
+          style={{ width: `${((idx + (result ? 1 : 0)) / questions.length) * 100}%` }}
+        />
+      </div>
+
+      {q.knowledge_point && (
+        <p className="mt-6 text-xs text-white/35">知识点 · {q.knowledge_point}</p>
+      )}
+      <h2 className="mt-2 text-[17px] leading-relaxed font-medium">{q.stem}</h2>
+
+      {/* 选项 */}
+      <div className="mt-6 border-t divider">
+        {options.map((opt, i) => {
+          const isChoice = choice === i
+          const isAnswer = result && i === q.answer
+          const isWrongPick = result && isChoice && i !== q.answer
+          return (
+            <button
+              key={i}
+              disabled={!!result || grading}
+              onClick={() => setChoice(i)}
+              className={`block w-full text-left py-3.5 px-3 border-b divider text-[15px] leading-relaxed transition-colors
+                ${result ? 'cursor-default' : 'hover:bg-white/[0.03]'}
+                ${isAnswer ? 'text-emerald-300' : ''}
+                ${isWrongPick ? 'text-rose-300' : ''}
+                ${!result && isChoice ? 'bg-violet-500/15 text-violet-100' : ''}`}
+            >
+              <span className="mr-2 text-white/35">{['A', 'B', 'C', 'D'][i]}.</span>
+              {opt}
+              {isAnswer && <span className="ml-2 text-xs">✓ 正确答案</span>}
+              {isWrongPick && <span className="ml-2 text-xs">你的选择</span>}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 理由输入 */}
+      {!result && (
+        <div className="mt-6">
+          <label className="block">
+            <p className="text-xs text-white/45 mb-2">
+              你的选择理由 <span className="text-white/25">（必须填写 · 因果、机制、印象来源都可以）</span>
+            </p>
+            <textarea
+              value={reasoning}
+              onChange={e => setReasoning(e.target.value)}
+              disabled={grading}
+              className="w-full h-32 px-3.5 py-3 text-sm leading-relaxed"
+              placeholder="我选这个，是因为…"
+            />
+          </label>
+          {err && <p className="mt-3 text-sm text-rose-300/80">{err}</p>}
+          <button
+            onClick={submit}
+            disabled={grading || choice === null || !reasoning.trim()}
+            className="mt-4 px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors disabled:opacity-30"
+          >
+            {grading ? 'AI 正在读你的理由…' : '提交，让 AI 批改'}
+          </button>
+        </div>
+      )}
+
+      {/* 批改结果 */}
+      {result && (() => {
+        const fb = result.attempt?.feedback || {}
+        const issues = Array.isArray(fb.issues) ? fb.issues : []
+        const valid = result.verdict && fb.reasoning_valid !== false
+        return (
+          <div className="mt-8">
+            <div className="border-t divider pt-6">
+              <p className={`text-lg font-medium ${result.verdict ? 'text-emerald-300' : 'text-rose-300'}`}>
+                {result.verdict ? '✓ 选项正确' : '✗ 选项错误'}
+                {!valid && <span className="ml-3 text-sm text-amber-200/85">但理由有漏洞</span>}
+              </p>
+              {fb.verdict_text && (
+                <p className="mt-2 text-[15px] leading-relaxed text-white/85">{fb.verdict_text}</p>
+              )}
+            </div>
+
+            {issues.length > 0 && (
+              <div className="mt-6 border-t divider pt-5">
+                <p className="text-xs text-white/40 mb-3">理由中的错漏</p>
+                <div className="space-y-3">
+                  {issues.map((it, i) => (
+                    <div key={i} className="flex gap-3">
+                      <span className="shrink-0 mt-0.5 text-[11px] px-1.5 py-0.5 rounded border border-amber-200/25 text-amber-200/75 h-fit">
+                        {ISSUE_LABEL[it.type] || '错漏'}
+                      </span>
+                      <p className="text-sm leading-relaxed text-white/80">{it.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {issues.length === 0 && valid && (
+              <div className="mt-6 border-t divider pt-5">
+                <p className="text-sm text-emerald-200/80">理由完全成立，推理链没有问题。</p>
+              </div>
+            )}
+
+            {fb.insight && (
+              <div className="mt-6 border-t divider pt-5">
+                <p className="text-xs text-white/40 mb-2">补充讲解</p>
+                <p className="text-sm leading-relaxed text-white/75">{fb.insight}</p>
+              </div>
+            )}
+
+            <div className="mt-6 border-t divider pt-5">
+              <p className="text-xs text-white/40 mb-2">原文依据</p>
+              <p className="text-sm leading-relaxed text-white/60 border-l-2 border-white/15 pl-3">{q.quote}</p>
+            </div>
+
+            <div className="mt-6 border-t divider pt-5">
+              <p className="text-xs text-white/40 mb-2">标准解析</p>
+              <p className="text-sm leading-relaxed text-white/70">{q.explanation}</p>
+            </div>
+
+            <div className="mt-8 flex items-center gap-5">
+              <button
+                onClick={next}
+                className="px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors"
+              >
+                {idx + 1 >= questions.length ? '完成' : '下一题'}
+              </button>
+              <button onClick={toggleCollect} className="text-sm text-white/40 hover:text-amber-200 transition-colors">
+                {saved ? '★ 已收藏' : '☆ 收藏此题'}
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+    </div>
+  )
+}

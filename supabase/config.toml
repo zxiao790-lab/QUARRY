@@ -1,0 +1,4 @@
+project_id = "quarry"
+
+[functions.ai-proxy]
+verify_jwt = true
