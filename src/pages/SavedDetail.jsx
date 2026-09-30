@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
+import { stripOptionNotes } from '../lib/text.js'
 
 const ISSUE_LABEL = {
   misunderstand: '概念误解',
@@ -169,7 +170,7 @@ export default function SavedDetail() {
         <div className="mt-8">
           <p className="text-xs text-ink/40 mb-2">标准解析</p>
           <p className={`text-sm leading-relaxed text-ink/70 ${exp ? '' : 'line-clamp-3'}`}>{q.explanation}</p>
-          {q.explanation.length > 90 && !exp && (
+          {stripOptionNotes(q.explanation).length > 90 && !exp && (
             <button onClick={() => setExp(true)} className="mt-2 text-xs text-acc/80 hover:text-acc transition-colors">
               展开更多
             </button>

@@ -143,7 +143,8 @@ ${chapter.raw_text.slice(0, MAX_CHAPTER_CHARS)}
 请基于上述内容出 ${count} 道选择题，严格按以下 JSON 格式输出（不要输出 JSON 以外的任何内容）：
 {"questions":[{"knowledge_point":"知识点名称","stem":"题干","options":["选项A内容","选项B内容","选项C内容","选项D内容"],"answer":0,"explanation":"1-2 句总述：为什么正确答案是它","option_notes":["对选项A的一句话解读","对选项B的一句话解读","对选项C的一句话解读","对选项D的一句话解读"],"quote":"原文关键句（尽量摘原句）","source_note":"对这段原文的解读，1-2 句，点明它在讲什么"}]}
 answer 为正确选项下标（0-3）。
-option_notes 与 options 一一对应，每条不超过 40 字，写到点上，不要套话。quote 摘自原文。全部内容精炼、信息密度优先。`;
+option_notes 与 options 一一对应，每条不超过 40 字，写到点上，不要套话。quote 摘自原文。
+explanation 只解释"为什么正确答案是它"，严禁逐项分析错误选项（对错误选项的解读已由 option_notes 承担，重复视为不合格）。全部内容精炼、信息密度优先。`;
 
       const content = await dsChat(apiKey, [
         { role: "system", content: GEN_SYSTEM },

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { aiProxy, supabase } from '../lib/supabase.js'
+import { stripOptionNotes } from '../lib/text.js'
 
 const ISSUE_LABEL = {
   misunderstand: '概念误解',
@@ -266,7 +267,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
             </p>
 
             {q.explanation && (
-              <p className="mt-4 text-[15px] leading-relaxed text-ink/85">{q.explanation}</p>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink/85">{stripOptionNotes(q.explanation)}</p>
             )}
 
             {/* 理由分析：我的理由 + AI 总评 + 错漏 */}
@@ -276,7 +277,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
                   <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
                   理由分析
                 </p>
-                <div className="mt-3 rounded-lg bg-ink/[0.04] px-4 py-4">
+                <div className="mt-3 rounded-lg panel-bg px-4 py-4">
                   {reasoning.trim() && (
                     <p className="text-sm leading-relaxed text-ink/80">{reasoning}</p>
                   )}
@@ -309,7 +310,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
                   <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
                   原文分析
                 </p>
-                <div className="mt-3 rounded-lg bg-ink/[0.04] px-4 py-4">
+                <div className="mt-3 rounded-lg panel-bg px-4 py-4">
                   {q.quote && (
                     <p className="font-song text-[15px] leading-relaxed text-ink/75">{q.quote}</p>
                   )}

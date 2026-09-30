@@ -76,3 +76,8 @@ details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
 
 .font-song { font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif; }
+
+.panel-bg { background: var(--panel); }
+
+:root { --panel: rgba(255, 255, 255, 0.04); }
+html.light { --panel: #FDFCFF; }
