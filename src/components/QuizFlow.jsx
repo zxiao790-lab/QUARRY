@@ -264,27 +264,26 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
         const valid = result.verdict && fb.reasoning_valid !== false
         return (
           <div className="mt-8">
-            <div className="border-t divider pt-6">
-              <p className={`text-lg font-medium ${result.verdict ? 'text-ok' : 'text-bad'}`}>
-                {result.verdict ? '✓ 选项正确' : '✗ 选项错误'}
-                {!valid && <span className="ml-3 text-sm text-warn/85">但理由有漏洞</span>}
-              </p>
-              {fb.verdict_text && (
-                <p className="mt-2 text-[15px] leading-relaxed text-ink/85">{fb.verdict_text}</p>
-              )}
-            </div>
-
+            {/* 我的理由 */}
             {reasoning.trim() && (
-              <div className="mt-6 border-t divider pt-5">
+              <div className="border-t divider pt-5">
                 <p className="text-xs text-ink/40 mb-2">我的理由 <span className="text-ink/25">（你提交时的原话）</span></p>
                 <p className="text-sm leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{reasoning}</p>
               </div>
             )}
 
-            {issues.length > 0 && (
-              <div className="mt-6 border-t divider pt-5">
-                <p className="text-xs text-ink/40 mb-3">理由中的错漏</p>
-                <div className="space-y-3">
+            {/* AI 批改：总评 + 错漏（名称与详情页统一） */}
+            <div className="mt-8">
+              <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">AI 批改</h2>
+              <p className={`mt-4 text-[15px] leading-relaxed ${result.verdict && valid ? 'text-ok' : 'text-bad'}`}>
+                {result.verdict ? '✓ 答对' : '✗ 答错'}
+                {!valid && <span className="ml-3 text-sm text-warn/85">但理由有漏洞</span>}
+              </p>
+              {fb.verdict_text && (
+                <p className="mt-2 text-[15px] leading-relaxed text-ink/85">{fb.verdict_text}</p>
+              )}
+              {issues.length > 0 ? (
+                <div className="mt-4 space-y-3">
                   {issues.map((it, i) => (
                     <div key={i} className="flex gap-3">
                       <span className="shrink-0 mt-0.5 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75 h-fit">
@@ -294,24 +293,14 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-            {issues.length === 0 && valid && (
-              <div className="mt-6 border-t divider pt-5">
-                <p className="text-sm text-ok/80">理由完全成立，推理链没有问题。</p>
-              </div>
-            )}
+              ) : valid && (
+                <p className="mt-4 text-sm text-ok/80">理由完全成立，推理链没有问题。</p>
+              )}
+            </div>
 
-            {fb.insight && (
-              <div className="mt-6 border-t divider pt-5">
-                <p className="text-xs text-ink/40 mb-2">补充讲解</p>
-                <p className="text-sm leading-relaxed text-ink/75">{fb.insight}</p>
-              </div>
-            )}
-
-            {/* 原文解析：与详情页同板块层级 */}
+            {/* 原文解析：板块与详情页一致 */}
             {(q.quote || q.source_note) && (
-              <div className="mt-8">
+              <div className="mt-10">
                 <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">原文解析</h2>
                 {q.quote && (
                   <p className="mt-4 font-song text-[15px] leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
@@ -319,6 +308,14 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
                 {q.source_note && (
                   <p className="mt-3 text-sm leading-relaxed text-ink/55">{q.source_note}</p>
                 )}
+              </div>
+            )}
+
+            {/* 补充讲解：属学习材料，跟在原文解析后（与详情页同位） */}
+            {fb.insight && (
+              <div className="mt-8">
+                <p className="text-xs text-ink/40 mb-2">补充讲解</p>
+                <p className="text-sm leading-relaxed text-ink/75">{fb.insight}</p>
               </div>
             )}
 

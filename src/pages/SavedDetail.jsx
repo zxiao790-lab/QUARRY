@@ -129,7 +129,6 @@ export default function SavedDetail() {
                           ))}
                         </div>
                       )}
-                      {fb.insight && <p className="mt-4 text-sm leading-relaxed text-ink/60">{fb.insight}</p>}
                     </div>
                   </details>
                 )}
@@ -142,7 +141,7 @@ export default function SavedDetail() {
         <p className="mt-10 text-xs text-ink/30">这道题还没有作答记录。</p>
       )}
 
-      {/* 原文解析：与作答记录同板块层级 */}
+      {/* 原文解析：与作答记录同板块层级；补充讲解（学习材料）跟在其后 */}
       {(q.quote || q.source_note) && (
         <div className="mt-10">
           <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">原文解析</h2>
@@ -154,6 +153,16 @@ export default function SavedDetail() {
           )}
         </div>
       )}
+      {(() => {
+        const latestFb = tries?.[0] ? (typeof tries[0].feedback === 'string' ? (() => { try { return JSON.parse(tries[0].feedback) } catch { return null } })() : tries[0].feedback) : null
+        if (!latestFb?.insight) return null
+        return (
+          <div className="mt-8">
+            <p className="text-xs text-ink/40 mb-2">补充讲解</p>
+            <p className="text-sm leading-relaxed text-ink/75">{latestFb.insight}</p>
+          </div>
+        )
+      })()}
 
       {/* 标准解析：默认 3 行，可展开 */}
       {q.explanation && (
