@@ -74,3 +74,5 @@ select option { background: var(--opt-bg); }
 /* 折叠区：隐藏原生三角，只留自定义 ＋ */
 details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
+
+.font-song { font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif; }
