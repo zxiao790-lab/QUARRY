@@ -29,8 +29,10 @@ export default function Quiz() {
     <QuizFlow
       questionsIn={questions}
       ordered
+      scope={`chapter:${chapterId}`}
       title={`${chapter.title}`}
       onDone={() => nav(`/book/${chapter.book_id}`)}
+      onExit={() => nav(`/book/${chapter.book_id}`)}
     />
   )
 }

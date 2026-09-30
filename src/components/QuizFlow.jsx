@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { aiProxy, supabase } from '../lib/supabase.js'
 
 const ISSUE_LABEL = {
@@ -16,11 +16,9 @@ function shuffle(arr) {
   return a
 }
 
-export default function QuizFlow({ questionsIn, title, ordered = true, onDone }) {
-  const questions = useMemo(
-    () => (ordered ? questionsIn : shuffle(questionsIn)),
-    [questionsIn, ordered],
-  )
+export default function QuizFlow({ questionsIn, title, ordered = true, onDone, scope, onExit }) {
+  const [order, setOrder] = useState(null) // 题目 id 顺序（恢复进度时来自快照）
+  const [ready, setReady] = useState(false)
   const [idx, setIdx] = useState(0)
   const [choice, setChoice] = useState(null)
   const [reasoning, setReasoning] = useState('')
@@ -29,12 +27,92 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
   const [saved, setSaved] = useState(false)
   const [err, setErr] = useState('')
   const [finished, setFinished] = useState(false)
+  const [hint, setHint] = useState('') // 恢复进度提示
+
+  // 顺序：先按恢复快照，否则按 ordered/shuffle 生成；集合变化时新题追加
+  const questions = useMemo(() => {
+    const byId = new Map(questionsIn.map(x => [x.id, x]))
+    let list = order ? order.map(id => byId.get(id)).filter(Boolean) : (ordered ? [...questionsIn] : shuffle(questionsIn))
+    for (const x of questionsIn) if (!list.find(y => y.id === x.id)) list.push(x)
+    return list
+  }, [order, questionsIn, ordered])
 
   const q = questions[idx]
+  const qIdRef = useRef(null)
+  const restoredRef = useRef(null)
 
-  // 换题时重置本轮状态
+  // 挂载：读取云端进度，恢复位置与草稿
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      let prog = null
+      let loadErr = null
+      if (scope) {
+        const { data, error } = await supabase.from('quiz_progress').select('*').eq('scope', scope).maybeSingle()
+        prog = data
+        loadErr = error
+      }
+      if (!alive) return
+      if (loadErr) {
+        setHint('进度同步不可用（' + (loadErr.message || '未知错误') + '），答题仍在继续')
+        return
+      }
+      if (prog?.order_json) setOrder(prog.order_json)
+      if (prog) {
+        let list = null
+        if (prog.order_json) {
+          list = prog.order_json.map(id => questionsIn.find(x => x.id === id)).filter(Boolean)
+          if (!list.length) list = null
+        }
+        const n = list ? list.length : questionsIn.length
+        const i = Math.min(Math.max(0, prog.idx), n - 1)
+        setIdx(i)
+        if (list) restoredRef.current = list[i]?.id || null
+        if (prog.draft) {
+          if (typeof prog.draft.choice === 'number') setChoice(prog.draft.choice)
+          setReasoning(prog.draft.reasoning || '')
+          if (prog.draft.result) setResult(prog.draft.result)
+        }
+        if (prog.idx > 0 || prog.draft) {
+          setHint(`已恢复进度 · 第 ${i + 1} / ${n} 题`)
+          setTimeout(() => alive && setHint(''), 4000)
+        }
+      }
+      setReady(true)
+    })()
+    return () => { alive = false }
+  }, [scope, questionsIn])
+
+  // 云端进度：静默自动保存（翻题立即存；草稿停顿后存）
+  function saveProgress(i, d) {
+    if (!scope || !ready) return
+    supabase.from('quiz_progress').upsert({
+      scope,
+      idx: i,
+      order_json: order || questions.map(x => x.id),
+      draft: d,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'scope' }).then(({ error }) => {
+      if (error) console.warn('[进度保存失败]', error.message)
+    })
+  }
+
+  const hasDraft = choice !== null || reasoning !== '' || !!result
+  useEffect(() => {
+    if (!ready || !q) return
+    const t = setTimeout(() => saveProgress(idx, hasDraft ? { choice, reasoning, result } : null), 700)
+    return () => clearTimeout(t)
+  }, [choice, reasoning, result, idx, ready, q?.id])
+
+  // 换题时重置本轮状态（恢复落点除外）
   useEffect(() => {
     if (!q) return
+    if (qIdRef.current === null || qIdRef.current === restoredRef.current) {
+      qIdRef.current = q.id
+      return
+    }
+    if (qIdRef.current === q.id) return
+    qIdRef.current = q.id
     setSaved(!!q.collected)
     setChoice(null)
     setReasoning('')
@@ -86,16 +164,26 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
   function next() {
     if (idx + 1 >= questions.length) {
       setFinished(true)
+      if (scope) supabase.from('quiz_progress').delete().eq('scope', scope) // 做完清进度
       return
     }
-    setIdx(idx + 1)
+    const nIdx = idx + 1
+    setIdx(nIdx)
+    saveProgress(nIdx, null) // 翻题立即落库
   }
 
   return (
     <div className="pt-14">
       <div className="flex items-baseline justify-between">
-        <p className="text-xs text-ink/35">{title}</p>
-        <p className="text-xs text-ink/35">{idx + 1} / {questions.length}</p>
+        <div className="flex items-baseline gap-4 min-w-0">
+          {onExit && (
+            <button onClick={onExit} className="shrink-0 text-xs text-ink/35 hover:text-ink/75 transition-colors">
+              ← 退出
+            </button>
+          )}
+          <p className="text-xs text-ink/35 truncate">{title}</p>
+        </div>
+        <p className="shrink-0 ml-4 text-xs text-ink/35">{idx + 1} / {questions.length}</p>
       </div>
       <div className="mt-2 h-px bg-ink/10">
         <div
@@ -103,6 +191,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
           style={{ width: `${((idx + (result ? 1 : 0)) / questions.length) * 100}%` }}
         />
       </div>
+      {hint && <p className="mt-3 text-xs text-acc/70">{hint}</p>}
 
       {q.knowledge_point && (
         <p className="mt-6 text-xs text-ink/35">知识点 · {q.knowledge_point}</p>
@@ -177,6 +266,13 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
                 <p className="mt-2 text-[15px] leading-relaxed text-ink/85">{fb.verdict_text}</p>
               )}
             </div>
+
+            {reasoning.trim() && (
+              <div className="mt-6 border-t divider pt-5">
+                <p className="text-xs text-ink/40 mb-2">我的理由 <span className="text-ink/25">（你提交时的原话）</span></p>
+                <p className="text-sm leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{reasoning}</p>
+              </div>
+            )}
 
             {issues.length > 0 && (
               <div className="mt-6 border-t divider pt-5">

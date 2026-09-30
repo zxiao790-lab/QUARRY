@@ -73,13 +73,13 @@ export default function Book() {
         </div>
         <div className="flex gap-4 text-sm">
           <Link
-            to={`/set/${id}?type=wrong`}
+            to={`/set/${id}`}
             className={`transition-colors ${wrongCount ? 'text-bad/80 hover:text-bad' : 'text-ink/20 pointer-events-none'}`}
           >
             错题重刷 {wrongCount ? `(${wrongCount})` : ''}
           </Link>
           <Link
-            to={`/set/${id}?type=saved`}
+            to={`/saved/${id}`}
             className={`transition-colors ${savedCount ? 'text-warn/80 hover:text-warn' : 'text-ink/20 pointer-events-none'}`}
           >
             收藏题 {savedCount ? `(${savedCount})` : ''}
