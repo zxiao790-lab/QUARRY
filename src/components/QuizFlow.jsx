@@ -28,7 +28,6 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
   const [err, setErr] = useState('')
   const [finished, setFinished] = useState(false)
   const [hint, setHint] = useState('') // 恢复进度提示
-  const [expOpen, setExpOpen] = useState(false) // 标准解析展开
 
   // 顺序：先按恢复快照，否则按 ordered/shuffle 生成；集合变化时新题追加
   const questions = useMemo(() => {
@@ -119,7 +118,6 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
     setReasoning('')
     setResult(null)
     setErr('')
-    setExpOpen(false)
   }, [q?.id])
 
   if (finished) {
@@ -257,79 +255,77 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
         </div>
       )}
 
-      {/* 批改结果 */}
+      {/* 批改结果（按她的排版：大字结论 → 解析全文 → 理由分析 → 原文分析 → 补充讲解） */}
       {result && (() => {
         const fb = result.attempt?.feedback || {}
         const issues = Array.isArray(fb.issues) ? fb.issues : []
-        const valid = result.verdict && fb.reasoning_valid !== false
         return (
           <div className="mt-8">
-            {/* 我的理由 */}
-            {reasoning.trim() && (
-              <div className="border-t divider pt-5">
-                <p className="text-xs text-ink/40 mb-2">我的理由 <span className="text-ink/25">（你提交时的原话）</span></p>
-                <p className="text-sm leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{reasoning}</p>
-              </div>
-            )}
+            <p className={`text-xl font-medium ${result.verdict ? 'text-ok' : 'text-bad'}`}>
+              {result.verdict ? '答案正确。' : '答案错误。'}
+            </p>
 
-            {/* AI 批改：总评 + 错漏（名称与详情页统一） */}
-            <div className="mt-8">
-              <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">AI 批改</h2>
-              <p className={`mt-4 text-[15px] leading-relaxed ${result.verdict && valid ? 'text-ok' : 'text-bad'}`}>
-                {result.verdict ? '✓ 答对' : '✗ 答错'}
-                {!valid && <span className="ml-3 text-sm text-warn/85">但理由有漏洞</span>}
-              </p>
-              {fb.verdict_text && (
-                <p className="mt-2 text-[15px] leading-relaxed text-ink/85">{fb.verdict_text}</p>
-              )}
-              {issues.length > 0 ? (
-                <div className="mt-4 space-y-3">
-                  {issues.map((it, i) => (
-                    <div key={i} className="flex gap-3">
-                      <span className="shrink-0 mt-0.5 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75 h-fit">
-                        {ISSUE_LABEL[it.type] || '错漏'}
-                      </span>
-                      <p className="text-sm leading-relaxed text-ink/80">{it.text}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : valid && (
-                <p className="mt-4 text-sm text-ok/80">理由完全成立，推理链没有问题。</p>
-              )}
-            </div>
-
-            {/* 原文解析：板块与详情页一致 */}
-            {(q.quote || q.source_note) && (
-              <div className="mt-10">
-                <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">原文解析</h2>
-                {q.quote && (
-                  <p className="mt-4 font-song text-[15px] leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
-                )}
-                {q.source_note && (
-                  <p className="mt-3 text-sm leading-relaxed text-ink/55">{q.source_note}</p>
-                )}
-              </div>
-            )}
-
-            {/* 补充讲解：属学习材料，跟在原文解析后（与详情页同位） */}
-            {fb.insight && (
-              <div className="mt-8">
-                <p className="text-xs text-ink/40 mb-2">补充讲解</p>
-                <p className="text-sm leading-relaxed text-ink/75">{fb.insight}</p>
-              </div>
-            )}
-
-            {/* 标准解析：3 行截断，可展开 */}
             {q.explanation && (
+              <p className="mt-4 text-[15px] leading-relaxed text-ink/85">{q.explanation}</p>
+            )}
+
+            {/* 理由分析：我的理由 + AI 总评 + 错漏 */}
+            {(reasoning.trim() || fb.verdict_text || issues.length > 0) && (
               <div className="mt-8">
-                <p className="text-xs text-ink/40 mb-2">标准解析</p>
-                <p className={`text-sm leading-relaxed text-ink/70 ${expOpen ? '' : 'line-clamp-3'}`}>{q.explanation}</p>
-                {q.explanation.length > 90 && !expOpen && (
-                  <button onClick={() => setExpOpen(true)} className="mt-2 text-xs text-acc/80 hover:text-acc transition-colors">
-                    展开更多
-                  </button>
-                )}
+                <p className="flex items-center gap-2 text-[15px] font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
+                  理由分析
+                </p>
+                <div className="mt-3 rounded-lg bg-ink/[0.04] px-4 py-4">
+                  {reasoning.trim() && (
+                    <p className="text-sm leading-relaxed text-ink/80">{reasoning}</p>
+                  )}
+                  {fb.verdict_text && (
+                    <>
+                      <div className="my-3 border-t border-dashed border-ink/15"></div>
+                      <p className="text-sm leading-relaxed text-acc">{fb.verdict_text}</p>
+                    </>
+                  )}
+                  {issues.length > 0 && (
+                    <div className="mt-3 space-y-3">
+                      {issues.map((it, i) => (
+                        <div key={i} className="flex gap-3">
+                          <span className="shrink-0 mt-0.5 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75 h-fit">
+                            {ISSUE_LABEL[it.type] || '错漏'}
+                          </span>
+                          <p className="text-sm leading-relaxed text-ink/75">{it.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+            )}
+
+            {/* 原文分析：原文 + 解读 */}
+            {(q.quote || q.source_note) && (
+              <div className="mt-8">
+                <p className="flex items-center gap-2 text-[15px] font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
+                  原文分析
+                </p>
+                <div className="mt-3 rounded-lg bg-ink/[0.04] px-4 py-4">
+                  {q.quote && (
+                    <p className="font-song text-[15px] leading-relaxed text-ink/75">{q.quote}</p>
+                  )}
+                  {q.source_note && (
+                    <>
+                      <div className="my-3 border-t border-dashed border-ink/15"></div>
+                      <p className="text-sm leading-relaxed text-acc">{q.source_note}</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 补充讲解：无标题平铺 */}
+            {fb.insight && (
+              <p className="mt-6 text-sm leading-relaxed text-ink/70">{fb.insight}</p>
             )}
 
             <div className="mt-8 flex items-center gap-5">
