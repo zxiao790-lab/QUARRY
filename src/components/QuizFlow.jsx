@@ -324,11 +324,6 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
               </div>
             )}
 
-            {/* 补充讲解：无标题平铺 */}
-            {fb.insight && (
-              <p className="mt-6 text-sm leading-relaxed text-ink/70">{fb.insight}</p>
-            )}
-
             <div className="mt-8 flex items-center gap-5">
               <button
                 onClick={next}

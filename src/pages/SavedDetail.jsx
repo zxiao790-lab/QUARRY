@@ -181,12 +181,7 @@ export default function SavedDetail() {
         </div>
       )}
 
-      {/* 补充讲解：无标题平铺 */}
-      {(() => {
-        const latestFb = tries?.[0] ? (typeof tries[0].feedback === 'string' ? (() => { try { return JSON.parse(tries[0].feedback) } catch { return null } })() : tries[0].feedback) : null
-        if (!latestFb?.insight) return null
-        return <p className="mt-6 text-sm leading-relaxed text-ink/70">{latestFb.insight}</p>
-      })()}
+
 
       <div className="mt-12">
         <Link to={backTo} className="text-xs text-ink/25 hover:text-ink/60 transition-colors">

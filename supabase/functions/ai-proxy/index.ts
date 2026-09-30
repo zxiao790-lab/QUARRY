@@ -221,8 +221,9 @@ ${optionLines}
 学习者的理由：${reasoning.trim()}
 
 请严格按以下 JSON 格式输出评价（不要输出 JSON 以外的任何内容）：
-{"reasoning_valid":true,"issues":[{"type":"misunderstand","text":"具体错漏描述"}],"insight":"结合原文的补充讲解","verdict_text":"一句话总评"}
-issues 的 type 取值：misunderstand（概念误解）/ gap（关键缺失）/ wrong_link（因果链错误）。`;
+{"reasoning_valid":true,"issues":[{"type":"misunderstand","text":"具体错漏描述"}],"verdict_text":"一句话总评"}
+issues 的 type 取值：misunderstand（概念误解）/ gap（关键缺失）/ wrong_link（因果链错误）。
+不要生成 insight 或任何延伸讲解——原文解读已在题面信息里，批改只针对学习者的理由。`;
 
       const content = await dsChat(apiKey, [
         { role: "system", content: GRADE_SYSTEM },
