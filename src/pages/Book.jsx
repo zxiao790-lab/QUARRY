@@ -117,7 +117,7 @@ export default function Book() {
                         onClick={() => generate(c.id, c.title)}
                         className="text-xs text-ink/40 hover:text-ink/80 transition-colors"
                       >
-                        +5
+                        再出5题
                       </button>
                       <Link
                         to={`/quiz/${c.id}`}
