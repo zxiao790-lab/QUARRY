@@ -44,6 +44,7 @@ export default function SavedDetail() {
 
   const backTo = `/book/${q.chapters?.book_id}`
   const options = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+  const optionNotes = typeof q.option_notes === 'string' ? JSON.parse(q.option_notes) : (q.option_notes || [])
   const latest = tries?.[0]
 
   return (
@@ -75,6 +76,9 @@ export default function SavedDetail() {
               </span>
               <div className="flex-1">
                 <p className={`text-[15px] leading-relaxed ${isAnswer ? 'text-ok' : isMine ? 'text-bad' : 'text-ink/80'}`}>{opt}</p>
+                {optionNotes[i] && (
+                  <p className="mt-1 text-xs leading-relaxed text-ink/40">{optionNotes[i]}</p>
+                )}
                 {isAnswer && (
                   <span className="inline-block mt-1.5 text-[11px] px-1.5 py-0.5 rounded border border-ok/30 text-ok/90">✓ 正确答案</span>
                 )}
@@ -138,11 +142,16 @@ export default function SavedDetail() {
         <p className="mt-10 text-xs text-ink/30">这道题还没有作答记录。</p>
       )}
 
-      {/* 原文依据：宋体引用块，直接展示 */}
-      {q.quote && (
+      {/* 原文解析：与作答记录同板块层级 */}
+      {(q.quote || q.source_note) && (
         <div className="mt-10">
-          <p className="text-xs text-ink/40 mb-2">原文依据</p>
-          <p className="font-song text-[15px] leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
+          <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">原文解析</h2>
+          {q.quote && (
+            <p className="mt-4 font-song text-[15px] leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
+          )}
+          {q.source_note && (
+            <p className="mt-3 text-sm leading-relaxed text-ink/55">{q.source_note}</p>
+          )}
         </div>
       )}
 

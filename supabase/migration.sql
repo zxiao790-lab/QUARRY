@@ -83,3 +83,7 @@ alter table quiz_progress enable row level security;
 
 -- 与本应用其他表同一模式：单用户，anon 全放行
 create policy "anon_all_quiz_progress" on quiz_progress for all to anon using (true) with check (true);
+
+-- 增量：出题时一次性生成原文解读与选项解读（2026-09-30）
+alter table questions add column if not exists source_note text;
+alter table questions add column if not exists option_notes jsonb;

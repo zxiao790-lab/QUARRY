@@ -28,6 +28,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
   const [err, setErr] = useState('')
   const [finished, setFinished] = useState(false)
   const [hint, setHint] = useState('') // 恢复进度提示
+  const [expOpen, setExpOpen] = useState(false) // 标准解析展开
 
   // 顺序：先按恢复快照，否则按 ordered/shuffle 生成；集合变化时新题追加
   const questions = useMemo(() => {
@@ -118,6 +119,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
     setReasoning('')
     setResult(null)
     setErr('')
+    setExpOpen(false)
   }, [q?.id])
 
   if (finished) {
@@ -140,6 +142,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
   }
 
   const options = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+  const optionNotes = typeof q.option_notes === 'string' ? JSON.parse(q.option_notes) : (q.option_notes || [])
 
   async function submit() {
     setErr('')
@@ -204,6 +207,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
           const isChoice = choice === i
           const isAnswer = result && i === q.answer
           const isWrongPick = result && isChoice && i !== q.answer
+          const note = result && optionNotes[i]
           return (
             <button
               key={i}
@@ -211,14 +215,17 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
               onClick={() => setChoice(i)}
               className={`block w-full text-left py-3.5 px-3 border-b divider text-[15px] leading-relaxed transition-colors
                 ${result ? 'cursor-default' : 'hover:bg-ink/[0.03]'}
-                ${isAnswer ? 'text-ok' : ''}
-                ${isWrongPick ? 'text-bad' : ''}
+                ${isAnswer ? 'text-ok bg-ok/[0.08]' : ''}
+                ${isWrongPick ? 'text-bad bg-bad/[0.08]' : ''}
                 ${!result && isChoice ? 'bg-acc/15 text-acc' : ''}`}
             >
               <span className="mr-2 text-ink/35">{['A', 'B', 'C', 'D'][i]}.</span>
               {opt}
               {isAnswer && <span className="ml-2 text-xs">✓ 正确答案</span>}
               {isWrongPick && <span className="ml-2 text-xs">你的选择</span>}
+              {note && (
+                <span className="block mt-1.5 text-xs leading-relaxed text-ink/40">{note}</span>
+              )}
             </button>
           )
         })}
@@ -302,15 +309,31 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
               </div>
             )}
 
-            <div className="mt-6 border-t divider pt-5">
-              <p className="text-xs text-ink/40 mb-2">原文依据</p>
-              <p className="text-sm leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
-            </div>
+            {/* 原文解析：与详情页同板块层级 */}
+            {(q.quote || q.source_note) && (
+              <div className="mt-8">
+                <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">原文解析</h2>
+                {q.quote && (
+                  <p className="mt-4 font-song text-[15px] leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
+                )}
+                {q.source_note && (
+                  <p className="mt-3 text-sm leading-relaxed text-ink/55">{q.source_note}</p>
+                )}
+              </div>
+            )}
 
-            <div className="mt-6 border-t divider pt-5">
-              <p className="text-xs text-ink/40 mb-2">标准解析</p>
-              <p className="text-sm leading-relaxed text-ink/70">{q.explanation}</p>
-            </div>
+            {/* 标准解析：3 行截断，可展开 */}
+            {q.explanation && (
+              <div className="mt-8">
+                <p className="text-xs text-ink/40 mb-2">标准解析</p>
+                <p className={`text-sm leading-relaxed text-ink/70 ${expOpen ? '' : 'line-clamp-3'}`}>{q.explanation}</p>
+                {q.explanation.length > 90 && !expOpen && (
+                  <button onClick={() => setExpOpen(true)} className="mt-2 text-xs text-acc/80 hover:text-acc transition-colors">
+                    展开更多
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="mt-8 flex items-center gap-5">
               <button
