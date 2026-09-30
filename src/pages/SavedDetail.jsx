@@ -22,7 +22,6 @@ export default function SavedDetail() {
   const { questionId } = useParams()
   const [q, setQ] = useState(null)
   const [tries, setTries] = useState(null) // attempts，时间倒序
-  const [exp, setExp] = useState(false) // 标准解析是否展开
   const [err, setErr] = useState('')
 
   useEffect(() => {
@@ -92,91 +91,101 @@ export default function SavedDetail() {
         })}
       </div>
 
-      {/* 作答记录：理由 + AI批改折叠（状态信息选项区已标出，不再重复） */}
+      {/* 解析正文：全文直展（与做题页同源） */}
+      {q.explanation && (
+        <div className="mt-10 border-t divider pt-6">
+          <p className="text-[15px] leading-relaxed text-ink/85">{stripOptionNotes(q.explanation)}</p>
+        </div>
+      )}
+
+      {/* 理由分析：折叠，默认收起；展开 = 灰块(理由+AI评) + 错漏条目 */}
       {tries !== null && tries.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">作答记录</h2>
-          {tries.map((t, i) => {
-            let fb = null
-            try { fb = typeof t.feedback === 'string' ? JSON.parse(t.feedback) : t.feedback } catch { fb = null }
-            const hasFb = fb && (fb.verdict_text || fb.insight || (fb.issues && fb.issues.length))
-            const issues = fb?.issues || []
-            return (
-              <div key={i} className="mt-5">
-                {t.reasoning && (
-                  <p className="text-sm leading-relaxed text-ink/70 border-l-2 border-ink/15 pl-3">{t.reasoning}</p>
-                )}
-                {hasFb && (
-                  <details className="group mt-4">
-                    <summary className="flex items-center justify-between cursor-pointer select-none">
-                      <span className="flex items-center gap-2 text-sm text-acc/85">
-                        <span className="w-1.5 h-1.5 rounded-full bg-acc/50"></span>
-                        AI 批改
-                      </span>
-                      <span className="text-ink/30 text-sm group-open:hidden">＋</span>
-                      <span className="text-ink/30 text-sm hidden group-open:inline">－</span>
-                    </summary>
-                    <div className="mt-4">
-                      {fb.verdict_text && <p className="text-[15px] leading-relaxed text-ink/85">{fb.verdict_text}</p>}
-                      {issues.length > 0 && (
-                        <div className="mt-4 space-y-3">
-                          {issues.map((it, k) => (
-                            <div key={k} className="text-sm leading-relaxed">
-                              <span className="shrink-0 mr-2 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75">
-                                {ISSUE_LABEL[it.type] || '其他'}
-                              </span>
-                              <span className="text-ink/70">{it.text}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </details>
-                )}
-              </div>
-            )
-          })}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer select-none">
+              <span className="flex items-center gap-2 text-[15px] font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
+                理由分析
+              </span>
+              <span className="text-ink/30 text-sm group-open:hidden">＋</span>
+              <span className="text-ink/30 text-sm hidden group-open:inline">－</span>
+            </summary>
+            <div className="mt-4">
+              {tries.map((t, i) => {
+                let fb = null
+                try { fb = typeof t.feedback === 'string' ? JSON.parse(t.feedback) : t.feedback } catch { fb = null }
+                const issues = fb?.issues || []
+                return (
+                  <div key={i} className={i > 0 ? 'mt-8' : ''}>
+                    {(t.reasoning || fb?.verdict_text) && (
+                      <div className="rounded-lg bg-ink/[0.04] px-4 py-4">
+                        {t.reasoning && (
+                          <p className="text-sm leading-relaxed text-ink/80">{t.reasoning}</p>
+                        )}
+                        {fb?.verdict_text && (
+                          <>
+                            <div className="my-3 border-t border-dashed border-ink/15"></div>
+                            <p className="text-sm leading-relaxed text-acc">{fb.verdict_text}</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {issues.length > 0 && (
+                      <div className="mt-4 space-y-3">
+                        {issues.map((it, k) => (
+                          <div key={k} className="text-sm leading-relaxed">
+                            <span className="shrink-0 mr-2 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75">
+                              {ISSUE_LABEL[it.type] || '其他'}
+                            </span>
+                            <span className="text-ink/70">{it.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </details>
         </div>
       )}
       {tries !== null && tries.length === 0 && (
         <p className="mt-10 text-xs text-ink/30">这道题还没有作答记录。</p>
       )}
 
-      {/* 原文解析：与作答记录同板块层级；补充讲解（学习材料）跟在其后 */}
+      {/* 原文分析：默认展开 */}
       {(q.quote || q.source_note) && (
         <div className="mt-10">
-          <h2 className="text-[15px] font-medium border-l-2 border-acc/60 pl-2.5">原文解析</h2>
-          {q.quote && (
-            <p className="mt-4 font-song text-[15px] leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
-          )}
-          {q.source_note && (
-            <p className="mt-3 text-sm leading-relaxed text-ink/55">{q.source_note}</p>
-          )}
+          <details className="group" open>
+            <summary className="flex items-center justify-between cursor-pointer select-none">
+              <span className="flex items-center gap-2 text-[15px] font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
+                原文分析
+              </span>
+              <span className="text-ink/30 text-sm group-open:hidden">＋</span>
+              <span className="text-ink/30 text-sm hidden group-open:inline">－</span>
+            </summary>
+            <div className="mt-4 rounded-lg panel-bg px-4 py-4">
+              {q.quote && (
+                <p className="font-song text-[15px] leading-relaxed text-ink/75">{q.quote}</p>
+              )}
+              {q.source_note && (
+                <>
+                  <div className="my-3 border-t border-dashed border-ink/15"></div>
+                  <p className="text-sm leading-relaxed text-acc">{q.source_note}</p>
+                </>
+              )}
+            </div>
+          </details>
         </div>
       )}
+
+      {/* 补充讲解：无标题平铺 */}
       {(() => {
         const latestFb = tries?.[0] ? (typeof tries[0].feedback === 'string' ? (() => { try { return JSON.parse(tries[0].feedback) } catch { return null } })() : tries[0].feedback) : null
         if (!latestFb?.insight) return null
-        return (
-          <div className="mt-8">
-            <p className="text-xs text-ink/40 mb-2">补充讲解</p>
-            <p className="text-sm leading-relaxed text-ink/75">{latestFb.insight}</p>
-          </div>
-        )
+        return <p className="mt-6 text-sm leading-relaxed text-ink/70">{latestFb.insight}</p>
       })()}
-
-      {/* 标准解析：默认 3 行，可展开 */}
-      {q.explanation && (
-        <div className="mt-8">
-          <p className="text-xs text-ink/40 mb-2">标准解析</p>
-          <p className={`text-sm leading-relaxed text-ink/70 ${exp ? '' : 'line-clamp-3'}`}>{q.explanation}</p>
-          {stripOptionNotes(q.explanation).length > 90 && !exp && (
-            <button onClick={() => setExp(true)} className="mt-2 text-xs text-acc/80 hover:text-acc transition-colors">
-              展开更多
-            </button>
-          )}
-        </div>
-      )}
 
       <div className="mt-12">
         <Link to={backTo} className="text-xs text-ink/25 hover:text-ink/60 transition-colors">
