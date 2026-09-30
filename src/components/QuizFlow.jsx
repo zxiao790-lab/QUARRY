@@ -277,7 +277,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
                   <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
                   理由分析
                 </p>
-                <div className="mt-3 rounded-lg panel-bg px-4 py-4">
+                <div className="mt-3 rounded-lg bg-ink/[0.04] px-4 py-4">
                   {reasoning.trim() && (
                     <p className="text-sm leading-relaxed text-ink/80">{reasoning}</p>
                   )}
