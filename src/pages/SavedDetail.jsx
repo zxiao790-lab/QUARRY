@@ -23,6 +23,7 @@ export default function SavedDetail() {
   const [q, setQ] = useState(null)
   const [tries, setTries] = useState(null) // attempts，时间倒序
   const [err, setErr] = useState('')
+  const [issuesOpen, setIssuesOpen] = useState(false) // 错漏条目展开
 
   useEffect(() => {
     load()
@@ -66,7 +67,7 @@ export default function SavedDetail() {
           return (
             <div
               key={i}
-              className={`flex gap-3 py-3.5 px-3 ${isAnswer ? 'bg-ok/[0.08] rounded-lg' : isMine ? 'bg-bad/[0.08] rounded-lg' : ''} ${i < options.length - 1 ? 'mb-px border-b divider' : ''}`}
+              className={`flex gap-3 py-3.5 px-3 ${isAnswer ? 'bg-ok/[0.08] rounded-lg' : isMine ? 'bg-bad/[0.08] rounded-lg' : ''}`}
             >
               <span
                 className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-xs mt-0.5
@@ -98,55 +99,61 @@ export default function SavedDetail() {
         </div>
       )}
 
-      {/* 理由分析：折叠，默认收起；展开 = 灰块(理由+AI评) + 错漏条目 */}
+      {/* 理由分析：灰块（理由+AI评）常驻；＋/－ 只控制错漏条目 */}
       {tries !== null && tries.length > 0 && (
         <div className="mt-10">
-          <details className="group">
-            <summary className="flex items-center justify-between cursor-pointer select-none">
-              <span className="flex items-center gap-2 text-[15px] font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
-                理由分析
-              </span>
-              <span className="text-ink/30 text-sm group-open:hidden">＋</span>
-              <span className="text-ink/30 text-sm hidden group-open:inline">－</span>
-            </summary>
-            <div className="mt-4">
-              {tries.map((t, i) => {
-                let fb = null
-                try { fb = typeof t.feedback === 'string' ? JSON.parse(t.feedback) : t.feedback } catch { fb = null }
-                const issues = fb?.issues || []
-                return (
-                  <div key={i} className={i > 0 ? 'mt-8' : ''}>
-                    {(t.reasoning || fb?.verdict_text) && (
-                      <div className="rounded-lg bg-ink/[0.04] px-4 py-4">
-                        {t.reasoning && (
-                          <p className="text-sm leading-relaxed text-ink/80">{t.reasoning}</p>
-                        )}
-                        {fb?.verdict_text && (
-                          <>
-                            <div className="my-3 border-t border-dashed border-ink/15"></div>
-                            <p className="text-sm leading-relaxed text-acc">{fb.verdict_text}</p>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    {issues.length > 0 && (
-                      <div className="mt-4 space-y-3">
-                        {issues.map((it, k) => (
-                          <div key={k} className="text-sm leading-relaxed">
-                            <span className="shrink-0 mr-2 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75">
-                              {ISSUE_LABEL[it.type] || '其他'}
-                            </span>
-                            <span className="text-ink/70">{it.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </details>
+          <button
+            onClick={() => setIssuesOpen(!issuesOpen)}
+            className="w-full flex items-center justify-between cursor-pointer select-none"
+          >
+            <span className="flex items-center gap-2 text-[15px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
+              理由分析
+            </span>
+            {tries.some(t => {
+              let fb = null
+              try { fb = typeof t.feedback === 'string' ? JSON.parse(t.feedback) : t.feedback } catch { fb = null }
+              return fb?.issues?.length > 0
+            }) && (
+              <span className="text-ink/30 text-sm">{issuesOpen ? '－' : '＋'}</span>
+            )}
+          </button>
+          <div className="mt-4">
+            {tries.map((t, i) => {
+              let fb = null
+              try { fb = typeof t.feedback === 'string' ? JSON.parse(t.feedback) : t.feedback } catch { fb = null }
+              const issues = fb?.issues || []
+              return (
+                <div key={i} className={i > 0 ? 'mt-8' : ''}>
+                  {(t.reasoning || fb?.verdict_text) && (
+                    <div className="rounded-lg bg-ink/[0.04] px-4 py-4">
+                      {t.reasoning && (
+                        <p className="text-sm leading-relaxed text-ink/80">{t.reasoning}</p>
+                      )}
+                      {fb?.verdict_text && (
+                        <>
+                          <div className="my-3 border-t border-dashed border-ink/15"></div>
+                          <p className="text-sm leading-relaxed text-acc">{fb.verdict_text}</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {issuesOpen && issues.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      {issues.map((it, k) => (
+                        <div key={k} className="text-sm leading-relaxed">
+                          <span className="shrink-0 mr-2 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75">
+                            {ISSUE_LABEL[it.type] || '其他'}
+                          </span>
+                          <span className="text-ink/70">{it.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
       {tries !== null && tries.length === 0 && (
@@ -156,16 +163,11 @@ export default function SavedDetail() {
       {/* 原文分析：默认展开 */}
       {(q.quote || q.source_note) && (
         <div className="mt-10">
-          <details className="group" open>
-            <summary className="flex items-center justify-between cursor-pointer select-none">
-              <span className="flex items-center gap-2 text-[15px] font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
-                原文分析
-              </span>
-              <span className="text-ink/30 text-sm group-open:hidden">＋</span>
-              <span className="text-ink/30 text-sm hidden group-open:inline">－</span>
-            </summary>
-            <div className="mt-4 rounded-lg panel-bg px-4 py-4">
+          <p className="flex items-center gap-2 text-[15px] font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-ink/70"></span>
+            原文分析
+          </p>
+          <div className="mt-4 rounded-lg panel-bg px-4 py-4">
               {q.quote && (
                 <p className="font-song text-[15px] leading-relaxed text-ink/75">{q.quote}</p>
               )}
@@ -176,7 +178,6 @@ export default function SavedDetail() {
                 </>
               )}
             </div>
-          </details>
         </div>
       )}
 
