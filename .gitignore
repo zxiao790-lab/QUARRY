@@ -4,3 +4,4 @@ dist
 .env.*
 supabase/.env
 .DS_Store
+supabase/.temp/
