@@ -200,7 +200,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
       <h2 className="mt-2 text-[17px] leading-relaxed font-medium">{q.stem}</h2>
 
       {/* 选项 */}
-      <div className="mt-6 border-t divider">
+      <div className="mt-6">
         {options.map((opt, i) => {
           const isChoice = choice === i
           const isAnswer = result && i === q.answer
@@ -211,11 +211,11 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
               key={i}
               disabled={!!result || grading}
               onClick={() => setChoice(i)}
-              className={`block w-full text-left py-3.5 px-3 border-b divider text-[15px] leading-relaxed transition-colors
+              className={`block w-full text-left py-3 px-3 text-[15px] leading-relaxed transition-colors
                 ${result ? 'cursor-default' : 'hover:bg-ink/[0.03]'}
-                ${isAnswer ? 'text-ok bg-ok/[0.08]' : ''}
-                ${isWrongPick ? 'text-bad bg-bad/[0.08]' : ''}
-                ${!result && isChoice ? 'bg-acc/15 text-acc' : ''}`}
+                ${isAnswer ? 'text-ok bg-ok/[0.08] rounded-lg' : ''}
+                ${isWrongPick ? 'text-bad bg-bad/[0.08] rounded-lg' : ''}
+                ${!result && isChoice ? 'bg-acc/15 text-acc rounded-lg' : ''}`}
             >
               <span className="mr-2 text-ink/35">{['A', 'B', 'C', 'D'][i]}.</span>
               {opt}
