@@ -46,10 +46,10 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
     return (
       <div className="pt-20 text-center">
         <p className="text-2xl font-medium">这一轮凿完了</p>
-        <p className="mt-3 text-sm text-white/45">共 {questions.length} 题，理由都已存档。</p>
+        <p className="mt-3 text-sm text-ink/45">共 {questions.length} 题，理由都已存档。</p>
         <button
           onClick={onDone}
-          className="mt-8 px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors"
+          className="mt-8 px-5 py-2.5 text-sm bg-acc/25 border border-acc/25 rounded-[10px] hover:bg-acc/35 transition-colors"
         >
           返回
         </button>
@@ -58,7 +58,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
   }
 
   if (!questions.length) {
-    return <p className="pt-14 text-sm text-white/30">这里没有可刷的题。</p>
+    return <p className="pt-14 text-sm text-ink/30">这里没有可刷的题。</p>
   }
 
   const options = typeof q.options === 'string' ? JSON.parse(q.options) : q.options
@@ -94,18 +94,18 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
   return (
     <div className="pt-14">
       <div className="flex items-baseline justify-between">
-        <p className="text-xs text-white/35">{title}</p>
-        <p className="text-xs text-white/35">{idx + 1} / {questions.length}</p>
+        <p className="text-xs text-ink/35">{title}</p>
+        <p className="text-xs text-ink/35">{idx + 1} / {questions.length}</p>
       </div>
-      <div className="mt-2 h-px bg-white/10">
+      <div className="mt-2 h-px bg-ink/10">
         <div
-          className="h-px bg-violet-400/60 transition-all duration-500"
+          className="h-px bg-acc/60 transition-all duration-500"
           style={{ width: `${((idx + (result ? 1 : 0)) / questions.length) * 100}%` }}
         />
       </div>
 
       {q.knowledge_point && (
-        <p className="mt-6 text-xs text-white/35">知识点 · {q.knowledge_point}</p>
+        <p className="mt-6 text-xs text-ink/35">知识点 · {q.knowledge_point}</p>
       )}
       <h2 className="mt-2 text-[17px] leading-relaxed font-medium">{q.stem}</h2>
 
@@ -121,12 +121,12 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
               disabled={!!result || grading}
               onClick={() => setChoice(i)}
               className={`block w-full text-left py-3.5 px-3 border-b divider text-[15px] leading-relaxed transition-colors
-                ${result ? 'cursor-default' : 'hover:bg-white/[0.03]'}
-                ${isAnswer ? 'text-emerald-300' : ''}
-                ${isWrongPick ? 'text-rose-300' : ''}
-                ${!result && isChoice ? 'bg-violet-500/15 text-violet-100' : ''}`}
+                ${result ? 'cursor-default' : 'hover:bg-ink/[0.03]'}
+                ${isAnswer ? 'text-ok' : ''}
+                ${isWrongPick ? 'text-bad' : ''}
+                ${!result && isChoice ? 'bg-acc/15 text-acc' : ''}`}
             >
-              <span className="mr-2 text-white/35">{['A', 'B', 'C', 'D'][i]}.</span>
+              <span className="mr-2 text-ink/35">{['A', 'B', 'C', 'D'][i]}.</span>
               {opt}
               {isAnswer && <span className="ml-2 text-xs">✓ 正确答案</span>}
               {isWrongPick && <span className="ml-2 text-xs">你的选择</span>}
@@ -139,8 +139,8 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
       {!result && (
         <div className="mt-6">
           <label className="block">
-            <p className="text-xs text-white/45 mb-2">
-              你的选择理由 <span className="text-white/25">（必须填写 · 因果、机制、印象来源都可以）</span>
+            <p className="text-xs text-ink/45 mb-2">
+              你的选择理由 <span className="text-ink/25">（必须填写 · 因果、机制、印象来源都可以）</span>
             </p>
             <textarea
               value={reasoning}
@@ -150,11 +150,11 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
               placeholder="我选这个，是因为…"
             />
           </label>
-          {err && <p className="mt-3 text-sm text-rose-300/80">{err}</p>}
+          {err && <p className="mt-3 text-sm text-bad/80">{err}</p>}
           <button
             onClick={submit}
             disabled={grading || choice === null || !reasoning.trim()}
-            className="mt-4 px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors disabled:opacity-30"
+            className="mt-4 px-5 py-2.5 text-sm bg-acc/25 border border-acc/25 rounded-[10px] hover:bg-acc/35 transition-colors disabled:opacity-30"
           >
             {grading ? 'AI 正在读你的理由…' : '提交，让 AI 批改'}
           </button>
@@ -169,25 +169,25 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
         return (
           <div className="mt-8">
             <div className="border-t divider pt-6">
-              <p className={`text-lg font-medium ${result.verdict ? 'text-emerald-300' : 'text-rose-300'}`}>
+              <p className={`text-lg font-medium ${result.verdict ? 'text-ok' : 'text-bad'}`}>
                 {result.verdict ? '✓ 选项正确' : '✗ 选项错误'}
-                {!valid && <span className="ml-3 text-sm text-amber-200/85">但理由有漏洞</span>}
+                {!valid && <span className="ml-3 text-sm text-warn/85">但理由有漏洞</span>}
               </p>
               {fb.verdict_text && (
-                <p className="mt-2 text-[15px] leading-relaxed text-white/85">{fb.verdict_text}</p>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink/85">{fb.verdict_text}</p>
               )}
             </div>
 
             {issues.length > 0 && (
               <div className="mt-6 border-t divider pt-5">
-                <p className="text-xs text-white/40 mb-3">理由中的错漏</p>
+                <p className="text-xs text-ink/40 mb-3">理由中的错漏</p>
                 <div className="space-y-3">
                   {issues.map((it, i) => (
                     <div key={i} className="flex gap-3">
-                      <span className="shrink-0 mt-0.5 text-[11px] px-1.5 py-0.5 rounded border border-amber-200/25 text-amber-200/75 h-fit">
+                      <span className="shrink-0 mt-0.5 text-[11px] px-1.5 py-0.5 rounded border border-warn/25 text-warn/75 h-fit">
                         {ISSUE_LABEL[it.type] || '错漏'}
                       </span>
-                      <p className="text-sm leading-relaxed text-white/80">{it.text}</p>
+                      <p className="text-sm leading-relaxed text-ink/80">{it.text}</p>
                     </div>
                   ))}
                 </div>
@@ -195,35 +195,35 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone })
             )}
             {issues.length === 0 && valid && (
               <div className="mt-6 border-t divider pt-5">
-                <p className="text-sm text-emerald-200/80">理由完全成立，推理链没有问题。</p>
+                <p className="text-sm text-ok/80">理由完全成立，推理链没有问题。</p>
               </div>
             )}
 
             {fb.insight && (
               <div className="mt-6 border-t divider pt-5">
-                <p className="text-xs text-white/40 mb-2">补充讲解</p>
-                <p className="text-sm leading-relaxed text-white/75">{fb.insight}</p>
+                <p className="text-xs text-ink/40 mb-2">补充讲解</p>
+                <p className="text-sm leading-relaxed text-ink/75">{fb.insight}</p>
               </div>
             )}
 
             <div className="mt-6 border-t divider pt-5">
-              <p className="text-xs text-white/40 mb-2">原文依据</p>
-              <p className="text-sm leading-relaxed text-white/60 border-l-2 border-white/15 pl-3">{q.quote}</p>
+              <p className="text-xs text-ink/40 mb-2">原文依据</p>
+              <p className="text-sm leading-relaxed text-ink/60 border-l-2 border-ink/15 pl-3">{q.quote}</p>
             </div>
 
             <div className="mt-6 border-t divider pt-5">
-              <p className="text-xs text-white/40 mb-2">标准解析</p>
-              <p className="text-sm leading-relaxed text-white/70">{q.explanation}</p>
+              <p className="text-xs text-ink/40 mb-2">标准解析</p>
+              <p className="text-sm leading-relaxed text-ink/70">{q.explanation}</p>
             </div>
 
             <div className="mt-8 flex items-center gap-5">
               <button
                 onClick={next}
-                className="px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors"
+                className="px-5 py-2.5 text-sm bg-acc/25 border border-acc/25 rounded-[10px] hover:bg-acc/35 transition-colors"
               >
                 {idx + 1 >= questions.length ? '完成' : '下一题'}
               </button>
-              <button onClick={toggleCollect} className="text-sm text-white/40 hover:text-amber-200 transition-colors">
+              <button onClick={toggleCollect} className="text-sm text-ink/40 hover:text-warn transition-colors">
                 {saved ? '★ 已收藏' : '☆ 收藏此题'}
               </button>
             </div>

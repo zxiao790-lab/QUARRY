@@ -1,29 +1,72 @@
 @import "tailwindcss";
 
-:root { color-scheme: dark; }
+@theme inline {
+  --color-ink: var(--ink);
+  --color-acc: var(--acc);
+  --color-bad: var(--bad);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+}
+
+/* ── 夜（默认） ─────────────────────────── */
+:root {
+  color-scheme: dark;
+  --ink: #e8e9f1;
+  --acc: #c4b5fd;
+  --bad: #fda4af;
+  --warn: #fde68a;
+  --ok: #6ee7b7;
+  --line: rgba(255, 255, 255, 0.09);
+  --field-bg: rgba(255, 255, 255, 0.04);
+  --field-line: rgba(255, 255, 255, 0.12);
+  --field-focus: rgba(139, 124, 246, 0.65);
+  --ph: rgba(232, 233, 241, 0.32);
+  --opt-bg: #1a1e33;
+  --sel: rgba(139, 124, 246, 0.35);
+}
+
+html.light {
+  color-scheme: light;
+  --ink: #2b2d3e;
+  --acc: #6d55c8;
+  --bad: #c9405a;
+  --warn: #a06a08;
+  --ok: #0f7d5c;
+  --line: rgba(43, 45, 62, 0.14);
+  --field-bg: rgba(43, 45, 62, 0.035);
+  --field-line: rgba(43, 45, 62, 0.18);
+  --field-focus: rgba(109, 85, 200, 0.7);
+  --ph: rgba(43, 45, 62, 0.38);
+  --opt-bg: #ffffff;
+  --sel: rgba(139, 110, 220, 0.28);
+}
 
 html, body { min-height: 100vh; }
 
 body {
   background: linear-gradient(160deg, #10121f 0%, #161a2e 45%, #1e1733 100%);
   background-attachment: fixed;
-  color: #e8e9f1;
+  color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: rgba(139, 124, 246, 0.35); }
+html.light body {
+  background: linear-gradient(160deg, #f6f5fa 0%, #f0eef7 45%, #f3effa 100%);
+}
 
-.divider { border-color: rgba(255, 255, 255, 0.09); }
+::selection { background: var(--sel); }
+
+.divider { border-color: var(--line); }
 
 input, textarea, select {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--field-bg);
+  border: 1px solid var(--field-line);
   border-radius: 10px;
   outline: none;
   transition: border-color .15s ease;
 }
-input:focus, textarea:focus, select:focus { border-color: rgba(139, 124, 246, 0.65); }
-input::placeholder, textarea::placeholder { color: rgba(232, 233, 241, 0.32); }
+input:focus, textarea:focus, select:focus { border-color: var(--field-focus); }
+input::placeholder, textarea::placeholder { color: var(--ph); }
 
-select option { background: #1a1e33; }
+select option { background: var(--opt-bg); }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { aiProxy } from '../lib/supabase.js'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 
 export default function Settings() {
   const nav = useNavigate()
@@ -48,17 +49,17 @@ export default function Settings() {
 
   return (
     <div className="pt-14">
-      <button onClick={() => nav('/')} className="text-sm text-white/40 hover:text-white/80 transition-colors">← 返回</button>
+      <button onClick={() => nav('/')} className="text-sm text-ink/40 hover:text-ink/80 transition-colors">← 返回</button>
       <h1 className="mt-4 text-xl font-semibold">设置</h1>
 
       <div className="mt-8 border-t divider pt-6">
         <div className="flex items-baseline justify-between">
           <p className="text-[15px]">DeepSeek API Key</p>
-          <span className={`text-xs ${configured ? 'text-emerald-300/80' : 'text-white/30'}`}>
+          <span className={`text-xs ${configured ? 'text-ok/80' : 'text-ink/30'}`}>
             {configured === null ? '查询中…' : configured ? '✓ 已配置' : '未配置'}
           </span>
         </div>
-        <p className="mt-2 text-xs leading-relaxed text-white/40">
+        <p className="mt-2 text-xs leading-relaxed text-ink/40">
           在 platform.deepseek.com 创建。Key 存在你自己的 Supabase 数据库里，
           仅服务端读写，前端永远接触不到明文；换设备无需重新填写。
         </p>
@@ -73,26 +74,31 @@ export default function Settings() {
           <button
             onClick={test}
             disabled={busy !== ''}
-            className="px-4 py-2 text-xs border border-white/15 rounded-lg hover:bg-white/[0.05] transition-colors disabled:opacity-40"
+            className="px-4 py-2 text-xs border border-ink/15 rounded-lg hover:bg-ink/[0.05] transition-colors disabled:opacity-40"
           >
             {busy === 'test' ? '测试中…' : '测试连接'}
           </button>
           <button
             onClick={save}
             disabled={busy !== '' || !apiKey.trim()}
-            className="px-4 py-2 text-xs bg-violet-500/25 border border-violet-300/25 rounded-lg hover:bg-violet-500/35 transition-colors disabled:opacity-40"
+            className="px-4 py-2 text-xs bg-acc/25 border border-acc/25 rounded-lg hover:bg-acc/35 transition-colors disabled:opacity-40"
           >
             {busy === 'save' ? '保存中…' : '保存'}
           </button>
         </div>
         {msg && (
-          <p className={`mt-4 text-sm ${msg.ok ? 'text-emerald-300/85' : 'text-rose-300/85'}`}>{msg.text}</p>
+          <p className={`mt-4 text-sm ${msg.ok ? 'text-ok/85' : 'text-bad/85'}`}>{msg.text}</p>
         )}
-        {err && <p className="mt-4 text-sm text-rose-300/85">{err}</p>}
+        {err && <p className="mt-4 text-sm text-bad/85">{err}</p>}
+      </div>
+
+      <div className="mt-10 border-t divider pt-6 flex items-baseline justify-between">
+        <p className="text-[15px]">外观</p>
+        <ThemeToggle asText />
       </div>
 
       <div className="mt-10 border-t divider pt-6">
-        <p className="text-xs leading-relaxed text-white/35">
+        <p className="text-xs leading-relaxed text-ink/35">
           模型固定使用 deepseek-flash：出题关思考模式（快、省），批改理由开思考模式（质量优先）。
         </p>
       </div>

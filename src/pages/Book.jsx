@@ -61,26 +61,26 @@ export default function Book() {
     nav('/')
   }
 
-  if (!book) return <div className="pt-14 text-sm text-white/30">加载中…</div>
+  if (!book) return <div className="pt-14 text-sm text-ink/30">加载中…</div>
 
   return (
     <div className="pt-14">
-      <button onClick={() => nav('/')} className="text-sm text-white/40 hover:text-white/80 transition-colors">← 书架</button>
+      <button onClick={() => nav('/')} className="text-sm text-ink/40 hover:text-ink/80 transition-colors">← 书架</button>
       <header className="mt-4 flex items-baseline justify-between">
         <div>
           <h1 className="text-xl font-semibold">{book.title}</h1>
-          {book.author && <p className="mt-1 text-xs text-white/30">{book.author}</p>}
+          {book.author && <p className="mt-1 text-xs text-ink/30">{book.author}</p>}
         </div>
         <div className="flex gap-4 text-sm">
           <Link
             to={`/set/${id}?type=wrong`}
-            className={`transition-colors ${wrongCount ? 'text-rose-300/80 hover:text-rose-200' : 'text-white/20 pointer-events-none'}`}
+            className={`transition-colors ${wrongCount ? 'text-bad/80 hover:text-bad' : 'text-ink/20 pointer-events-none'}`}
           >
             错题重刷 {wrongCount ? `(${wrongCount})` : ''}
           </Link>
           <Link
             to={`/set/${id}?type=saved`}
-            className={`transition-colors ${savedCount ? 'text-amber-200/80 hover:text-amber-100' : 'text-white/20 pointer-events-none'}`}
+            className={`transition-colors ${savedCount ? 'text-warn/80 hover:text-warn' : 'text-ink/20 pointer-events-none'}`}
           >
             收藏题 {savedCount ? `(${savedCount})` : ''}
           </Link>
@@ -96,18 +96,18 @@ export default function Book() {
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[15px] truncate">{i + 1}. {c.title}</p>
-                  <p className="mt-0.5 text-xs text-white/30">
+                  <p className="mt-0.5 text-xs text-ink/30">
                     {c.raw_text.length.toLocaleString()} 字
                     {n > 0 && <> · {n} 道题</>}
                   </p>
                 </div>
                 <div className="shrink-0 flex items-center gap-3">
                   {busy ? (
-                    <span className="text-xs text-violet-300/80 animate-pulse">出题中…</span>
+                    <span className="text-xs text-acc/80 animate-pulse">出题中…</span>
                   ) : n === 0 ? (
                     <button
                       onClick={() => generate(c.id, c.title)}
-                      className="px-3.5 py-1.5 text-xs bg-violet-500/25 border border-violet-300/25 rounded-lg hover:bg-violet-500/35 transition-colors"
+                      className="px-3.5 py-1.5 text-xs bg-acc/25 border border-acc/25 rounded-lg hover:bg-acc/35 transition-colors"
                     >
                       生成题目
                     </button>
@@ -115,13 +115,13 @@ export default function Book() {
                     <>
                       <button
                         onClick={() => generate(c.id, c.title)}
-                        className="text-xs text-white/40 hover:text-white/80 transition-colors"
+                        className="text-xs text-ink/40 hover:text-ink/80 transition-colors"
                       >
                         +5
                       </button>
                       <Link
                         to={`/quiz/${c.id}`}
-                        className="px-3.5 py-1.5 text-xs bg-white/[0.06] border border-white/12 rounded-lg hover:bg-white/[0.1] transition-colors"
+                        className="px-3.5 py-1.5 text-xs bg-ink/[0.06] border border-ink/12 rounded-lg hover:bg-ink/[0.1] transition-colors"
                       >
                         开始学习
                       </Link>
@@ -132,24 +132,24 @@ export default function Book() {
             </div>
           )
         })}
-        {chapters.length === 0 && <p className="py-8 text-sm text-white/30">这本书还没有章节。</p>}
+        {chapters.length === 0 && <p className="py-8 text-sm text-ink/30">这本书还没有章节。</p>}
       </div>
 
       {genMsg && (
-        <p className={`mt-4 text-xs text-violet-300/80 ${generating ? 'animate-pulse' : ''}`}>{genMsg}</p>
+        <p className={`mt-4 text-xs text-acc/80 ${generating ? 'animate-pulse' : ''}`}>{genMsg}</p>
       )}
-      {err && <p className="mt-4 text-sm text-rose-300/80">{err}</p>}
+      {err && <p className="mt-4 text-sm text-bad/80">{err}</p>}
 
       <div className="mt-16 pt-4 border-t divider">
         {!confirmDelete ? (
-          <button onClick={() => setConfirmDelete(true)} className="text-xs text-white/25 hover:text-rose-300/70 transition-colors">
+          <button onClick={() => setConfirmDelete(true)} className="text-xs text-ink/25 hover:text-bad/70 transition-colors">
             删除这本书
           </button>
         ) : (
           <div className="flex items-center gap-3 text-xs">
-            <span className="text-white/50">删除后书、章节、题目、作答记录全部消失，不可恢复。</span>
-            <button onClick={deleteBook} className="text-rose-300/90 hover:text-rose-200 font-medium">确认删除</button>
-            <button onClick={() => setConfirmDelete(false)} className="text-white/40 hover:text-white/80">取消</button>
+            <span className="text-ink/50">删除后书、章节、题目、作答记录全部消失，不可恢复。</span>
+            <button onClick={deleteBook} className="text-bad/90 hover:text-bad font-medium">确认删除</button>
+            <button onClick={() => setConfirmDelete(false)} className="text-ink/40 hover:text-ink/80">取消</button>
           </div>
         )}
       </div>

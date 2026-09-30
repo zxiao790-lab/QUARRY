@@ -22,7 +22,7 @@ export default function Quiz() {
   }
 
   if (!chapter || !questions) {
-    return <div className="pt-14 text-sm text-white/30">加载中…</div>
+    return <div className="pt-14 text-sm text-ink/30">加载中…</div>
   }
 
   return (

@@ -59,38 +59,38 @@ export default function Import() {
 
   return (
     <div className="pt-14">
-      <button onClick={() => nav('/')} className="text-sm text-white/40 hover:text-white/80 transition-colors">← 书架</button>
+      <button onClick={() => nav('/')} className="text-sm text-ink/40 hover:text-ink/80 transition-colors">← 书架</button>
       <h1 className="mt-4 text-xl font-semibold">导入新书</h1>
 
       <div className="mt-8 space-y-5">
         <div className="flex gap-4">
           <label className="flex-1">
-            <p className="text-xs text-white/40 mb-1.5">书名 *</p>
+            <p className="text-xs text-ink/40 mb-1.5">书名 *</p>
             <input value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3 py-2.5 text-sm" placeholder="如：行为" />
           </label>
           <label className="w-36">
-            <p className="text-xs text-white/40 mb-1.5">作者</p>
+            <p className="text-xs text-ink/40 mb-1.5">作者</p>
             <input value={author} onChange={e => setAuthor(e.target.value)} className="w-full px-3 py-2.5 text-sm" placeholder="可选" />
           </label>
         </div>
 
         <div className="flex gap-4 items-end">
           <label className="flex-1">
-            <p className="text-xs text-white/40 mb-1.5">章节切分</p>
+            <p className="text-xs text-ink/40 mb-1.5">章节切分</p>
             <select value={mode} onChange={e => setMode(e.target.value)} className="w-full px-3 py-2.5 text-sm">
               <option value="zh">中文书（第X章 / 讲 / 部分）</option>
               <option value="en">英文书（Chapter N）</option>
               <option value="single">全书作为单章</option>
             </select>
           </label>
-          <label className="cursor-pointer px-4 py-2.5 text-sm border border-white/15 rounded-[10px] hover:bg-white/[0.05] transition-colors">
+          <label className="cursor-pointer px-4 py-2.5 text-sm border border-ink/15 rounded-[10px] hover:bg-ink/[0.05] transition-colors">
             打开 .txt
             <input type="file" accept=".txt,text/plain" onChange={onFile} className="hidden" />
           </label>
         </div>
 
         <label className="block">
-          <p className="text-xs text-white/40 mb-1.5">或直接粘贴正文（当前 {totalChars.toLocaleString()} 字）</p>
+          <p className="text-xs text-ink/40 mb-1.5">或直接粘贴正文（当前 {totalChars.toLocaleString()} 字）</p>
           <textarea
             value={raw}
             onChange={e => setRaw(e.target.value)}
@@ -99,36 +99,36 @@ export default function Import() {
           />
         </label>
 
-        {err && <p className="text-sm text-rose-300/80">{err}</p>}
+        {err && <p className="text-sm text-bad/80">{err}</p>}
 
         {chapters === null ? (
-          <button onClick={preview} className="px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors">
+          <button onClick={preview} className="px-5 py-2.5 text-sm bg-acc/25 border border-acc/25 rounded-[10px] hover:bg-acc/35 transition-colors">
             预览切分
           </button>
         ) : (
           <>
             <div className="border-t divider pt-4">
               <div className="flex items-baseline justify-between">
-                <p className="text-sm text-white/70">
-                  切出 <span className="text-violet-300">{chapters.length}</span> 章 · 共 {totalChars.toLocaleString()} 字
+                <p className="text-sm text-ink/70">
+                  切出 <span className="text-acc">{chapters.length}</span> 章 · 共 {totalChars.toLocaleString()} 字
                 </p>
-                <button onClick={preview} className="text-xs text-white/40 hover:text-white/80 transition-colors">重新切分</button>
+                <button onClick={preview} className="text-xs text-ink/40 hover:text-ink/80 transition-colors">重新切分</button>
               </div>
               {fallback && (
-                <p className="mt-2 text-xs text-amber-200/70">
+                <p className="mt-2 text-xs text-warn/70">
                   没有识别到章节标记，已回退为「全书单章」。可以换一种切分模式，或直接用全书单章出题。
                 </p>
               )}
               <div className="mt-3 max-h-72 overflow-y-auto">
                 {chapters.map((c, i) => (
                   <div key={i} className="flex items-center gap-3 py-2.5 border-b divider">
-                    <span className="w-8 text-xs text-white/25">{i + 1}</span>
+                    <span className="w-8 text-xs text-ink/25">{i + 1}</span>
                     <input
                       value={c.titleInput}
                       onChange={e => setChapters(chapters.map((x, j) => j === i ? { ...x, titleInput: e.target.value } : x))}
                       className="flex-1 px-2.5 py-1.5 text-sm"
                     />
-                    <span className="w-20 text-right text-xs text-white/25">{c.text.length.toLocaleString()} 字</span>
+                    <span className="w-20 text-right text-xs text-ink/25">{c.text.length.toLocaleString()} 字</span>
                   </div>
                 ))}
               </div>
@@ -136,7 +136,7 @@ export default function Import() {
             <button
               onClick={save}
               disabled={saving}
-              className="px-5 py-2.5 text-sm bg-violet-500/25 border border-violet-300/25 rounded-[10px] hover:bg-violet-500/35 transition-colors disabled:opacity-50"
+              className="px-5 py-2.5 text-sm bg-acc/25 border border-acc/25 rounded-[10px] hover:bg-acc/35 transition-colors disabled:opacity-50"
             >
               {saving ? '入库中…' : `确认入库（${chapters.length} 章）`}
             </button>

@@ -29,7 +29,7 @@ export default function QuizSet() {
   }
 
   if (questions === null) {
-    return <div className="pt-14 text-sm text-white/30">加载中…</div>
+    return <div className="pt-14 text-sm text-ink/30">加载中…</div>
   }
 
   return (
