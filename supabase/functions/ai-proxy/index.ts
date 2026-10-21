@@ -55,11 +55,6 @@ async function dsChat(apiKey: string, messages: { role: string; content: string 
   return content;
 }
 
-async function getApiKey(supabase: ReturnType<typeof createClient>): Promise<string | null> {
-  const { data } = await supabase.from("settings").select("value").eq("key", "deepseek_api_key").maybeSingle();
-  return data?.value || null;
-}
-
 // ---------- 提示词 ----------
 
 const GEN_SYSTEM = `你是一位严谨的学习出题人，从书籍章节中提取知识点，设计高质量的中文选择题。
@@ -94,36 +89,21 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-
-    // ---- key 管理 ----
-    if (op === "key-status") {
-      const key = await getApiKey(supabase);
-      return json({ configured: !!key });
-    }
-
-    if (op === "save-key") {
-      const { api_key } = await req.json();
-      if (!api_key || typeof api_key !== "string") return json({ error: "api_key 不能为空" }, 400);
-      const { error } = await supabase
-        .from("settings")
-        .upsert({ key: "deepseek_api_key", value: api_key.trim(), updated_at: new Date().toISOString() });
-      if (error) throw new Error(error.message);
-      return json({ ok: true });
-    }
+    // BYOK：key 由前端随请求体带来，即转即弃，不落库
+    const body = await req.json().catch(() => ({}));
+    const userApiKey = (body.userApiKey || "").trim();
+    const NO_KEY_MSG = "还没有配置 AI Key——请到设置页填写（Key 只存在你自己的浏览器里）";
 
     if (op === "test-key") {
-      const { api_key } = await req.json().catch(() => ({}));
-      const key = api_key?.trim() || (await getApiKey(supabase));
-      if (!key) return json({ error: "还没有可用的 API Key" }, 400);
-      await dsChat(key, [{ role: "user", content: "回复：ok" }], { thinking: false });
+      if (!userApiKey) return json({ error: NO_KEY_MSG }, 400);
+      await dsChat(userApiKey, [{ role: "user", content: "回复：ok" }], { thinking: false });
       return json({ ok: true });
     }
 
     // ---- 出题 ----
     if (op === "generate") {
-      const { chapter_id, count = 5 } = await req.json();
-      const apiKey = await getApiKey(supabase);
-      if (!apiKey) return json({ error: "尚未配置 DeepSeek API Key，请先到设置页填写" }, 400);
+      const { chapter_id, count = 5 } = body;
+      if (!userApiKey) return json({ error: NO_KEY_MSG }, 400);
 
       const { data: chapter, error: chErr } = await supabase
         .from("chapters").select("*").eq("id", chapter_id).single();
@@ -146,7 +126,7 @@ answer 为正确选项下标（0-3）。
 option_notes 与 options 一一对应，每条不超过 40 字，写到点上，不要套话。quote 摘自原文。
 explanation 只解释"为什么正确答案是它"，严禁逐项分析错误选项（对错误选项的解读已由 option_notes 承担，重复视为不合格）。全部内容精炼、信息密度优先。`;
 
-      const content = await dsChat(apiKey, [
+      const content = await dsChat(userApiKey, [
         { role: "system", content: GEN_SYSTEM },
         { role: "user", content: userPrompt },
       ], { thinking: false, json: true });
@@ -195,9 +175,8 @@ explanation 只解释"为什么正确答案是它"，严禁逐项分析错误选
 
     // ---- 批改 ----
     if (op === "grade") {
-      const { question_id, choice, reasoning } = await req.json();
-      const apiKey = await getApiKey(supabase);
-      if (!apiKey) return json({ error: "尚未配置 DeepSeek API Key，请先到设置页填写" }, 400);
+      const { question_id, choice, reasoning } = body;
+      if (!userApiKey) return json({ error: NO_KEY_MSG }, 400);
       if (typeof choice !== "number" || !reasoning?.trim()) {
         return json({ error: "缺少选项或理由" }, 400);
       }
@@ -225,7 +204,7 @@ ${optionLines}
 issues 的 type 取值：misunderstand（概念误解）/ gap（关键缺失）/ wrong_link（因果链错误）。
 不要生成 insight 或任何延伸讲解——原文解读已在题面信息里，批改只针对学习者的理由。`;
 
-      const content = await dsChat(apiKey, [
+      const content = await dsChat(userApiKey, [
         { role: "system", content: GRADE_SYSTEM },
         { role: "user", content: userPrompt },
       ], { thinking: true, json: true });

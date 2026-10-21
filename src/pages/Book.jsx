@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase, aiProxy } from '../lib/supabase.js'
+import { getUserAIKey } from '../lib/userAI.js'
 
 export default function Book() {
   const { id } = useParams()
@@ -41,6 +42,7 @@ export default function Book() {
 
   async function generate(chapterId, chapterTitle) {
     setErr('')
+    if (!getUserAIKey()) { setErr('还没有配置 AI Key——去「设置」页填写后即可出题'); return }
     setGenerating(chapterId)
     setGenMsg(`正在读《${chapterTitle}》，提取知识点出题…（约半分钟）`)
     try {

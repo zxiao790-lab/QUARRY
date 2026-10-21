@@ -1,0 +1,23 @@
+{
+  "name": "Quarry · 采石场",
+  "short_name": "Quarry",
+  "description": "导书 · 出题 · 说理由 · AI 批改",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#10121f",
+  "theme_color": "#10121f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

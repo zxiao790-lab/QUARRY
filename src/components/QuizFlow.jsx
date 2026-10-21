@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { aiProxy, supabase } from '../lib/supabase.js'
+import { getUserAIKey } from '../lib/userAI.js'
 import { stripOptionNotes } from '../lib/text.js'
 
 const ISSUE_LABEL = {
@@ -145,6 +146,7 @@ export default function QuizFlow({ questionsIn, title, ordered = true, onDone, s
 
   async function submit() {
     setErr('')
+    if (!getUserAIKey()) { setErr('还没有配置 AI Key——去「设置」页填写后即可批改'); return }
     setGrading(true)
     try {
       const r = await aiProxy('grade', { question_id: q.id, choice, reasoning })
